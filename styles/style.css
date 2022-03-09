@@ -1,0 +1,189 @@
+/* author: Ganko Pi */
+
+:root {
+	--header_color: rgb(73, 87, 167);
+	--hovered: rgb(53, 70, 168);
+	/* --hovered: rgb(from var(--header_color) r g b / .5); */
+}
+
+* {
+	size: auto;
+	padding: 0;
+	margin: 0;
+	cursor: default;
+}
+
+body {
+	background-color: linen;
+	font-size: 18px;
+}
+
+header {
+	display: flex;
+	justify-content: space-between;
+
+	padding: 0.5rem 3rem;
+	background-color: var(--header_color);
+}
+
+main {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4rem 2rem;
+	margin: 2rem 1rem;
+}
+
+.elementsWithDueDate, .elementsWithoutDueDate {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+
+	padding: 0.5rem;
+
+	overflow-wrap: break-word;
+}
+
+.elementsWithDueDate > .draggable, .elementsWithoutDueDate > .draggable {
+	padding: 0.5rem;
+}
+
+.container {
+	width: 20rem;
+	min-height: 15rem;
+
+	background-color: bisque;
+	/* border: 0.1rem solid sandybrown; */
+	border: 0.05rem solid var(--header_color)
+
+	/* box-shadow: 0.5rem 0.5rem #00000033; */
+}
+
+.blocker {
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	/* background-color: #11111199; */
+	z-index: 1;
+}
+
+.container1 {
+	height: 100px;
+	width: 100px;
+
+	border: 1px solid orange;
+}
+
+.button {
+	padding: 0.5rem 1rem;
+	text-align: center;
+	z-index: 100;
+}
+
+.button:not(.disabled) {
+	cursor: pointer;
+}
+
+header .button {
+	color: white;
+	width: fit-content;
+	background-color: inherit;
+}
+
+header .button:hover:not(.disabled) {
+	background-color: var(--hovered)
+}
+
+.addElement {
+	margin: 0.15rem;
+	background-color: darkgrey;
+	border-radius: 0.05rem;
+}
+
+.addElement:hover:not(.disabled) {
+	background-color: #A0A0A0;
+}
+
+.containerHeader {
+	padding: 10px;
+	background-color: var(--header_color);
+	color: #fff;
+
+	display: flex;
+}
+
+.containerHeaderText {
+	flex-grow: 1;
+}
+
+/* .draggable .dragArea {
+	cursor: move;
+} */
+
+
+.draggable {
+	/* z-index: 9; */
+	/* text-align: center; */
+
+	/* width: max-content; */
+}
+
+.placeholder {
+	background-color: #e0e0e0;
+}
+
+#div1 {
+	background-color: orange;
+}
+
+#innerDiv1 {
+	background-color: red;
+}
+
+#div2 {
+	background-color: aqua;
+}
+
+#innerDiv2 {
+	background-color: blue;
+}
+
+/* p {
+	background-color: red;
+	min-height: 1rem;
+} */
+
+.element {
+	background-color: navajowhite;
+	border: 0.25rem solid burlywood;
+	border-radius: 0.15rem;
+	text-align: left;
+}
+
+.element .button {
+	/* background-color: tan; */
+}
+
+.buttonsContainerElements {
+	display: flex;
+	justify-content: space-between;
+}
+
+.buttonsContainerElements img {
+	padding: 0.3rem 1rem;
+	width: 1rem;
+}
+
+.buttonsContainerElements img:hover {
+	background-color: #F0CEA3;
+}
+
+.textArea {
+	padding: 0.1rem 0.1rem;
+}
+
+img {
+	padding: 0.3rem 1rem;
+	height: 1rem;
+}
