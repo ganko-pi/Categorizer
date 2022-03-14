@@ -16,6 +16,8 @@
 body {
 	background-color: linen;
 	font-size: 18px;
+
+	height: 100vh;
 }
 
 header {
@@ -33,7 +35,7 @@ main {
 	margin: 2rem 1rem;
 }
 
-.elementsWithDueDate, .elementsWithoutDueDate {
+.notesWithDueDateContainer, .notesWithoutDueDateContainer {
 	display: flex;
 	flex-direction: column;
 	gap: 0.5rem;
@@ -43,11 +45,11 @@ main {
 	overflow-wrap: break-word;
 }
 
-.elementsWithDueDate > .draggable, .elementsWithoutDueDate > .draggable {
+.notesWithDueDateContainer > .draggable, .notesWithoutDueDateContainer > .draggable {
 	padding: 0.5rem;
 }
 
-.container {
+.category {
 	width: 20rem;
 	min-height: 15rem;
 
@@ -95,17 +97,17 @@ header .button:hover:not(.disabled) {
 	background-color: var(--hovered)
 }
 
-.addElement {
+.addNote {
 	margin: 0.15rem;
 	background-color: darkgrey;
 	border-radius: 0.05rem;
 }
 
-.addElement:hover:not(.disabled) {
+.addNote:hover:not(.disabled) {
 	background-color: #A0A0A0;
 }
 
-.containerHeader {
+.categoryHeader {
 	padding: 10px;
 	background-color: var(--header_color);
 	color: #fff;
@@ -113,7 +115,7 @@ header .button:hover:not(.disabled) {
 	display: flex;
 }
 
-.containerHeaderText {
+.categoryName {
 	flex-grow: 1;
 }
 
@@ -131,6 +133,9 @@ header .button:hover:not(.disabled) {
 
 .placeholder {
 	background-color: #e0e0e0;
+
+	padding: 0;
+	margin: 0;
 }
 
 #div1 {
@@ -154,28 +159,28 @@ header .button:hover:not(.disabled) {
 	min-height: 1rem;
 } */
 
-.element {
+.note {
 	background-color: navajowhite;
 	border: 0.25rem solid burlywood;
 	border-radius: 0.15rem;
 	text-align: left;
 }
 
-.element .button {
+.note .button {
 	/* background-color: tan; */
 }
 
-.buttonsContainerElements {
+.buttonsContainerNote {
 	display: flex;
 	justify-content: space-between;
 }
 
-.buttonsContainerElements img {
+.buttonsContainerNote img {
 	padding: 0.3rem 1rem;
 	width: 1rem;
 }
 
-.buttonsContainerElements img:hover {
+.buttonsContainerNote img:hover {
 	background-color: #F0CEA3;
 }
 
