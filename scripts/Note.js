@@ -7,17 +7,21 @@ class Note extends Element {
 	#doneDate;
 
 	/**
-	 * Constructor for a new note without content and due date which will be displayed at the HTML page.
-	 * @param {Category} category the category which contains this note
+	 * Constructor for a new note without content and due date which will be displayed in the HTML page.
 	 * @param {Date} creationDate the date on which the category was first created
+	 * @param {Category} category the category which contains this note
+	 * @param {Date} doneDate the date when this note was finished, pass null if it is not finished yet
 	 */
-	constructor(category, creationDate) {
-		super(category, creationDate);
+	constructor(creationDate, category, doneDate) {
+		super(creationDate);
 		this._htmlObject = this.createNoteInHTML();
+		this._container = category;
 		this.#content = "";
 		this.#dueDate = null;
-		this.#doneDate = null;
+		this.#doneDate = doneDate
 		this._remapKeysRef = this.remapKeys.bind(this);
+
+		this.makeDraggable();
 	}
 
 	/**
@@ -61,8 +65,6 @@ class Note extends Element {
 		dueDatePicker.disabled = true;
 		dueDate.appendChild(dueDatePicker);
 		note.appendChild(dueDate);
-
-		// TODO: makeDraggable(note);
 
 		return note;
 	}
@@ -127,12 +129,11 @@ class Note extends Element {
 
 		// if the note does not contain any content, remove the note
 		if (textArea.innerHTML.trim().length == 0) {
-			this._htmlObject.remove();
 			// remove remappings
 			window.removeEventListener("keydown", this._remapKeysRef);
 			LockableManager.unlockElements();
 
-			this._container.removeNote(this);
+			this._container.removeChild(this);
 
 			return;
 		}
@@ -143,7 +144,8 @@ class Note extends Element {
 		let dueDatePicker = this._htmlObject.querySelector(".dueDatePicker");
 		if (this.#dueDate != dueDatePicker.value) {
 			this.#dueDate = dueDatePicker.value;
-			this._container.addNote(this);
+			this._container.removeChild(this);
+			this._container.addChild(this);
 		}
 
 		this.#removeEditState();
@@ -154,12 +156,11 @@ class Note extends Element {
 	 */
 	cancelEditContent() {
 		if (this.#content == "") {
-			this._htmlObject.remove();
 			// remove remappings
 			window.removeEventListener("keydown", this._remapKeysRef);
 			LockableManager.unlockElements();
 
-			this._container.removeNote(this);
+			this._container.removeChild(this);
 
 			return;
 		}
@@ -216,26 +217,61 @@ class Note extends Element {
 	}
 
 	/**
-	 * Returns if the note has a due date.
-	 * @returns if the note has a due date
+	 * Moves the placeholder for this note to the overlapped category.
+	 * @param {Category} overlappedCategory the category which overlaps with this note
 	 */
-	hasDueDate() {
-		return (this.#dueDate != null);
-	}
+	movePlaceholder(overlappedCategory) {
+		if (this._container == overlappedCategory) {
 
-	/**
-	 * Returns the current due date of this note.
-	 * @returns the current due date
-	 */
-	getDueDate() {
-		return this.#dueDate;
+			let overlappedNote = overlappedCategory.getOverlappingNote(this._htmlObject);
+			if (!this.#dueDate &&
+				(overlappedNote && !overlappedNote.hasDueDate())) {
+
+				let wasPlaceholderBeforeOverlappedNote = this._container.isChildBeforeOtherChild(this._placeholder, overlappedNote);
+
+				this._container.removeChild(this._placeholder);
+				
+				if (wasPlaceholderBeforeOverlappedNote) {
+					this._container.insertElementAfterChild(this._placeholder, overlappedNote);
+				} else {
+					this._container.insertElementBeforeChild(this._placeholder, overlappedNote);
+				}
+			}
+
+			return;
+		}
+
+		// different this._container and overlappedCategory
+		this._container.removeChild(this._placeholder);
+
+		// needs to be before moving this note to overlappedCategory
+		let overlappedNote = overlappedCategory.getOverlappingNote(this._htmlObject);
+
+		this._container.removeChild(this);
+		overlappedCategory.addNoteWithPlaceholder(this);
+
+		this._container = overlappedCategory;
+
+		if (this.#dueDate) {
+			overlappedCategory.addElementWithDueDate(this._placeholder, this.#dueDate);
+
+			return;
+		}
+		
+		if (!overlappedNote || overlappedNote.hasDueDate()) {
+			overlappedCategory.addElementWithoutDueDate(this._placeholder);
+
+			return;
+		}
+
+		overlappedCategory.insertElementBeforeChild(this._placeholder);
 	}
 
 	/**
 	 * Remaps Ctrl+S to save new content of this note and Escape to cancel the action of altering the content and keep the previous content.
 	 * @param {Event} event the event which caused the call of this method
 	 */
-	 remapKeys(event) {
+	remapKeys(event) {
 		// remap Ctrl+S to save new content of this note
 		if (event.key === "s" && event.ctrlKey) {
 			this.saveContent();
@@ -249,5 +285,21 @@ class Note extends Element {
 			event.preventDefault();
 			return;
 		}
+	}
+
+	/**
+	 * Returns the current due date of this note.
+	 * @returns the current due date
+	 */
+	getDueDate() {
+		return this.#dueDate;
+	}
+
+	/**
+	 * Returns if the note has a due date.
+	 * @returns if the note has a due date
+	 */
+	hasDueDate() {
+		return ((this.#dueDate != null) && (this.#dueDate != ""));
 	}
 }

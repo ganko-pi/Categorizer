@@ -1,23 +1,30 @@
 /**
  * @author Ganko Pi
  */
-class Category extends Element {
+class Category extends Container {
 	#name;
+	#newNotes;
 	#notesWithDueDate;
 	#notesWithoutDueDate;
+	#notesWithPlaceholder;
 
 	/**
-	 * Constructor for a new category with empty name which will be displayed at the HTML page.
-	 * @param {CategoryManager} categoryManager the class which holds a reference to this category
+	 * Constructor for a new category with empty name which will be displayed in the HTML page.
 	 * @param {Date} creationDate the date on which the category was first created
+	 * @param {CategoryManager} categoryManager the CategoryManager managing this category
 	 */
-	constructor(categoryManager, creationDate) {
-		super(categoryManager, creationDate);
+	constructor(creationDate, categoryManager) {
+		super(creationDate);
 		this._htmlObject = this.createCategoryInHTML();
+		this._container = categoryManager;
 		this.#name = "";
+		this.#newNotes = [];
 		this.#notesWithDueDate = [];
 		this.#notesWithoutDueDate = [];
+		this.#notesWithPlaceholder = [];
 		this._remapKeysRef = this.remapKeys.bind(this);
+
+		this.makeDraggable();
 	}
 
 	/**
@@ -70,6 +77,11 @@ class Category extends Element {
 		let notesWithoutDueDateContainer = document.createElement("div");
 		notesWithoutDueDateContainer.classList.add("notesWithoutDueDateContainer");
 		category.appendChild(notesWithoutDueDateContainer);
+
+		// create a container for a note that has currently a placeholder
+		let notesWithPlaceholder = document.createElement("div");
+		notesWithPlaceholder.classList.add("notesWithPlaceholderContainer");
+		category.appendChild(notesWithPlaceholder);
 
 		return category;
 	}
@@ -127,18 +139,18 @@ class Category extends Element {
 		}
 
 		// if name is blank and the category contains notes, saving is disallowed
-		if ((categoryName.innerHTML.trim().length == 0) && ((this.#notesWithDueDate > 0) || (this.#notesWithoutDueDate > 0))) {
+		if ((categoryName.innerHTML.trim().length == 0) && ((this.#notesWithDueDate.length > 0) || (this.#notesWithoutDueDate.length > 0))) {
+			alert("Kategoriename darf nicht leer sein, wenn die Kategorie Notizen enthält.")
 			return;
 		}
 
 		// if name is blank and the category does not contain notes, the category will be removed
 		if (categoryName.innerHTML.trim().length == 0) {
-			this._htmlObject.remove();
 			// remove remappings
 			window.removeEventListener("keydown", this._remapKeysRef);
 			LockableManager.unlockElements();
 
-			this._container.removeCategory(this);
+			this._container.removeChild(this);
 
 			return;
 		}
@@ -153,12 +165,11 @@ class Category extends Element {
 	 */
 	cancelEditName() {
 		if (this.#name == "") {
-			this._htmlObject.remove();
 			// remove remappings
 			window.removeEventListener("keydown", this._remapKeysRef);
 			LockableManager.unlockElements();
 
-			this._container.removeCategory(this);
+			this._container.removeChild(this);
 
 			return;
 		}
@@ -188,7 +199,7 @@ class Category extends Element {
 		buttonEdit.classList.add("button");
 		buttonEdit.src = "img/pencil.svg";
 		buttonEdit.alt = "Bearbeiten";
-		LockableManager.makeLockable(buttonEdit, "click", this.editName);
+		LockableManager.makeLockable(buttonEdit, "click", this.editName.bind(this));
 		buttonsContainerCategoryHeader.appendChild(buttonEdit);
 
 		LockableManager.unlockElements();
@@ -198,9 +209,10 @@ class Category extends Element {
 	 * Creates a new note and adds it to this category.
 	 */
 	createNewNote() {
-		let note = new Note(this, new Date());
+		let note = new Note(new Date(), this, null);
 
-		let newNotesContainer = this._htmlObject.querySelector(".newNotesContainer");
+		this.#newNotes.push(note);
+		let newNotesContainer = this.#getHTMLElementContainer(this.#newNotes);
 		newNotesContainer.appendChild(note.getHTMLObject());
 		
 		note.editContent();
@@ -210,76 +222,245 @@ class Category extends Element {
 	 * Adds a note to this category.
 	 * @param {Note} note a note which should be added to this category
 	 */
-	addNote(note) {
-		// detach note from previous parent
-		note.getHTMLObject().remove();
-
+	addChild(note) {
 		// if note has no due date, insert it at last position
 		if (!note.hasDueDate()) {
-			this.#notesWithoutDueDate.push(note);
-
-			// insert in HTML page
-			let notesWithoutDueDateContainer = this._htmlObject.querySelector(".notesWithoutDueDateContainer");
-			notesWithoutDueDateContainer.appendChild(note.getHTMLObject());
+			this.addElementWithoutDueDate(note);
 
 			return;
 		}
 
-		// if note has a due date, insert it at a position where the previous note has a smaller or equal due date and the next note a greater or none due date
-		let dueDate = note.getDueDate();
+		this.addElementWithDueDate(note, note.getDueDate());
+	}
+
+	/**
+	 * Removes an element from this class
+	 * @param {Element} element the element to remove
+	 */
+	removeChild(element) {
+		let index = this.#newNotes.indexOf(element);
+		if (index != -1) {
+			this.#newNotes.splice(index, 1);
+
+			element.getHTMLObject().remove();
+			return;
+		}
+
+		index = this.#notesWithDueDate.indexOf(element);
+		if (index != -1) {
+			this.#notesWithDueDate.splice(index, 1);
+
+			element.getHTMLObject().remove();
+			return;
+		}
+
+		index = this.#notesWithoutDueDate.indexOf(element);
+		if (index != -1) {
+			this.#notesWithoutDueDate.splice(index, 1);
+
+			element.getHTMLObject().remove();
+			return;
+		}
+
+		index = this.#notesWithPlaceholder.indexOf(element);
+		if (index != -1) {
+			this.#notesWithPlaceholder.splice(index, 1);
+
+			element.getHTMLObject().remove();
+		}
+	}
+
+	/**
+	 * Adds an element to this category. The position is determined by the given due date.
+	 * @param {Element} element the element to add in the container for elements with due date
+	 * @param {Date} dueDate the due date to determine the position of element
+	 */
+	addElementWithDueDate(element, dueDate) {
+		// insert element at a position where the previous one has a smaller or equal due date and the next one a greater or none due date
+		let notesWithDueDateContainer = this.#getHTMLElementContainer(this.#notesWithDueDate);
+
 		for (let i = 0; i < this.#notesWithDueDate.length; ++i) {
 			let dueDateToCompare = this.#notesWithDueDate[i].getDueDate();
 			if (dueDate < dueDateToCompare) {
-				this.#notesWithDueDate.splice(i, 0, note);
+				this.#notesWithDueDate.splice(i, 0, element);
 
 				// insert in HTML page
-				let notesWithDueDateContainer = this._htmlObject.querySelector(".notesWithDueDateContainer");
 				// note was inserted at i-th position, so the element after is at i + 1
-				notesWithDueDateContainer.insertBefore(note.getHTMLObject(), this.#notesWithDueDate[i + 1]);
+				notesWithDueDateContainer.insertBefore(element.getHTMLObject(), this.#notesWithDueDate[i + 1].getHTMLObject());
 
 				return;
 			}
 		}
 
 		// if due date of given note is greater than all other due dates, insert at the end
-		this.#notesWithDueDate.push(note);
+		this.#notesWithDueDate.push(element);
 
 		// insert in HTML page
-		let notesWithDueDateContainer = this._htmlObject.querySelector(".notesWithDueDateContainer");
-		notesWithDueDateContainer.appendChild(note.getHTMLObject());
+		notesWithDueDateContainer.appendChild(element.getHTMLObject());
 	}
 
 	/**
-	 * Sets a new name for this category.
-	 * @param {string} name the new name
+	 * Adds an element to this category at the last position.
+	 * @param {Element} element the element to add in the container for elements without due date
 	 */
-	setName(name) {
-		this.#name = name;
+	addElementWithoutDueDate(element) {
+		this.addElementWithoutDueDate(element, this.#notesWithoutDueDate.length);
 	}
 
 	/**
-	 * Returns the name of this category.
-	 * @returns the current name
+	 * Adds an element to this category at the specified position.
+	 * @param {Element} element the element to add in the container for elements without due date
+	 * @param {number} index the position the element should be inserted
 	 */
-	getName() {
-		return this.#name;
-	}
+	addElementWithoutDueDate(element, index) {
+		this.#notesWithoutDueDate.splice(index, 0, element);
 
-	/**
-	 * Removes a note from this class
-	 * @param {Note} note the note to remove
-	 */
-	removeNote(note) {
-		let index = this.#notesWithDueDate.indexOf(note);
-		if (index != -1) {
-			this.#notesWithDueDate.splice(index, 1);
+		// insert in HTML page
+		let notesWithoutDueDateContainer = this.#getHTMLElementContainer(this.#notesWithoutDueDate);
+
+		if (index < (this.#notesWithoutDueDate.length - 1)) {
+			// note was inserted at i-th position, so the element after is at i + 1
+			notesWithoutDueDateContainer.insertBefore(element.getHTMLObject(), this.#notesWithoutDueDate[i + 1].getHTMLObject());
 			return;
 		}
 
-		index = this.#notesWithoutDueDate.indexOf(note);
-		if (index != -1) {
-			this.#notesWithoutDueDate.splice(index, 1);
+		notesWithoutDueDateContainer.appendChild(element.getHTMLObject());
+	}
+
+	/**
+	 * Adds an element to a container which stores elements which are currently replaced by a placeholder.
+	 * @param {Element} element the element to add to the container
+	 */
+	addNoteWithPlaceholder(element) {
+		this.#notesWithPlaceholder.push(element);
+		let notesWithPlaceholder = this.#getHTMLElementContainer(this.#notesWithPlaceholder);
+		notesWithPlaceholder.appendChild(element.getHTMLObject());
+	}
+
+	/**
+	 * Tests if element1 is before element2.
+	 * @param {Element} element1 the first element
+	 * @param {Element} element2 the second element
+	 * @returns true if element1 is before element2, false otherwise
+	 */
+	isChildBeforeOtherChild(element1, element2) {
+		let container = this.#notesWithDueDate;
+		if (container.indexOf(element1) == -1) {
+			container = this.#notesWithoutDueDate;
 		}
+
+		let index1 = container.indexOf(element1);
+		let index2 = container.indexOf(element2);
+		if (index1 == -1 || index2 == -1) {
+			return false;
+		}
+
+		return index1 < index2;
+	}
+
+	/**
+	 * Inserts an element before another element of this category.
+	 * @param {Element} element the element to insert
+	 * @param {Element} child an element of this category before which the new element should be inserted
+	 */
+	insertElementBeforeChild(element, child) {
+		let container = this.#getContainer(child);
+		if (!container) {
+			return;
+		}
+		
+		let index = container.indexOf(child);
+
+		container.splice(index, 0, element);
+
+		let htmlObjectContainer = this.#getHTMLElementContainer(container);
+		htmlObjectContainer.insertBefore(element.getHTMLObject(), child.getHTMLObject());
+	}
+
+	/**
+	 * Inserts an element after another element of this category.
+	 * @param {Element} element the element to insert
+	 * @param {Element} child an element of this category after which the new element should be inserted
+	 */
+	insertElementAfterChild(element, child) {
+		let container = this.#getContainer(child);
+		if (!container) {
+			return;
+		}
+
+		let index = container.indexOf(child);
+
+		container.splice(index + 1, 0, element);
+
+		let htmlObjectContainer = this.#getHTMLElementContainer(container);
+		htmlObjectContainer.insertBefore(element.getHTMLObject(), child.getHTMLObject().nextSibling);
+	}
+
+	/**
+	 * Sets a placeholder at the position of a given element.
+	 * @param {Element} element the element to replace with a placeholder
+	 * @param {Placeholder} placeholder the placeholder to replace the element
+	 */
+	replaceElementWithPlaceholder(element, placeholder) {
+		let container = this.#getContainer(element);
+		if (!container) {
+			return;
+		}
+
+		this.insertElementBeforeChild(placeholder, element);
+		this.removeChild(element);
+		
+		this.addNoteWithPlaceholder(element);
+	}
+
+	/**
+	 * Sets an element at the position of the given placeholder.
+	 * @param {Element} element the element to set at position of the placeholder
+	 * @param {Placeholder} placeholder the placeholder to replace with the element
+	 */
+	setElementAtPositionOfPlaceholder(element, placeholder) {
+		this.removeChild(element);
+
+		this.insertElementBeforeChild(element, placeholder);
+
+		this.removeChild(placeholder);
+	}
+
+	/**
+	 * Moves the placeholder for this category at the position of the overlapped category.
+	 * @param {Category} overlappedCategory the category which overlaps with this category
+	 */
+	movePlaceholder(overlappedCategory) {
+		if (this._container.isChildBeforeOtherChild(this._placeholder, overlappedCategory)) {
+			this._container.moveChildAfterOtherChild(this._placeholder, overlappedCategory);
+		} else {
+			this._container.moveChildBeforeOtherChild(this._placeholder, overlappedCategory);
+		}
+	}
+
+	/**
+	 * Determines if a given HTML object overlaps with the HTML object of a note of this category and returns this note.
+	 * @param {HTMLElement} object the HTML object to test the overlapping with a note
+	 * @returns a note which overlaps with the HTML object or undefined if no note overlaps
+	 */
+	getOverlappingNote(object) {
+		// first try to find in this.#notesWithDueDate
+		let result = this.#notesWithDueDate.find((note) => {
+			return (object != note.getHTMLObject())
+				&& !(note instanceof Placeholder)
+				&& note.doesOverlap(object);
+		});
+
+		if (result) {
+			return result;
+		}
+
+		// try to find in this.#notesWithoutDueDate
+		return this.#notesWithoutDueDate.find((note) => {
+			return (object != note.getHTMLObject())
+				&& !(note instanceof Placeholder)
+				&& note.doesOverlap(object);
+		});
 	}
 
 	/**
@@ -300,5 +481,64 @@ class Category extends Element {
 			event.preventDefault();
 			return;
 		}
+	}
+
+	/**
+	 * Returns the container in which a given element is located.
+	 * @param {Element} element the element to find the container for
+	 * @returns the container of the element or undefined if the element is not part of this category
+	 */
+	#getContainer(element) {
+		let container = this.#notesWithDueDate;
+		let index = container.indexOf(element);
+		
+		// if element is not part of this.#notesWithDueDate, look for it in this.#notesWithoutDueDate
+		if (index == -1) {
+			container = this.#notesWithoutDueDate;
+			index = container.indexOf(element);
+		}
+
+		// if element is not part of any containers, return undefined
+		if (index == -1) {
+			return undefined;
+		}
+
+		return container;
+	}
+
+	/**
+	 * Returns the HTML element for a given container.
+	 * @param {array} container the container to retrieve the HTML element for
+	 * @returns the HTML element which represents the container in the HTML page or undefined if the container does not have a representation in HTML
+	 */
+	#getHTMLElementContainer(container) {
+		switch (container) {
+			case this.#newNotes:
+				return this._htmlObject.querySelector(".newNotesContainer");
+			case this.#notesWithDueDate:
+				return this._htmlObject.querySelector(".notesWithDueDateContainer");
+			case this.#notesWithoutDueDate:
+				return this._htmlObject.querySelector(".notesWithoutDueDateContainer");
+			case this.#notesWithPlaceholder:
+				return this._htmlObject.querySelector(".notesWithPlaceholderContainer");
+			default:
+				return undefined;
+		}
+	}
+
+	/**
+	 * Returns the name of this category.
+	 * @returns the current name
+	 */
+	getName() {
+		return this.#name;
+	}
+
+	/**
+	 * Sets a new name for this category.
+	 * @param {string} name the new name
+	 */
+	setName(name) {
+		this.#name = name;
 	}
 }

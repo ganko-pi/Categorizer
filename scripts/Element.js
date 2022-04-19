@@ -4,21 +4,92 @@
 class Element {
 	#creationDate;
 	_htmlObject;
-	#placeholder;
-	_container;
+	_placeholder;
 	_remapKeysRef;
+	_container;
+
+	#relativeMouseOffsetX;
+	#relativeMouseOffsetY;
+	#dragRef;
+	#endDraggingRef;
 
 	/**
 	 * Constructor for an element which manages a HTML object with a custom date of creation.
-	 * @param {CategoryManager | Category} container the class which holds a reference to this element
 	 * @param {string} creationDate the date on which the element was first created
 	 */
-	constructor(container, creationDate) {
+	constructor(creationDate) {
 		this.#creationDate = creationDate;
 		this._htmlObject = null;
-		this.#placeholder = null;
-		this._container = container;
+		this._placeholder = null;
 		this._remapKeysRef = null;
+		this._container = null;
+
+		this.#relativeMouseOffsetX = 0;
+		this.#relativeMouseOffsetY = 0;
+		this.#dragRef = this.drag.bind(this);
+		this.#endDraggingRef = this.endDragging.bind(this);
+	}
+
+	/**
+	 * Makes this element follow the cursor in the HTML page if a dragArea of this element is held.
+	 */
+	makeDraggable() {
+		let dragAreas = this._htmlObject.querySelectorAll(".dragArea");
+		dragAreas.forEach((dragArea) => LockableManager.makeLockable(dragArea, "mousedown", this.initDraggable.bind(this)));
+	}
+
+	/**
+	 * Changes the state of this element that it can be moved in the HTML page and replaces the previous position with a placeholder.
+	 * @param {Event} event the event which caused the call of this method
+	 */
+	initDraggable(event) {
+		// needed if no event is passed
+		event = event || window.event;
+		event.preventDefault();
+
+		this.#relativeMouseOffsetX = event.pageX - this._htmlObject.getBoundingClientRect().left;
+		this.#relativeMouseOffsetY = event.pageY - this._htmlObject.getBoundingClientRect().top;
+
+		LockableManager.lockElements();
+
+		this.makeElementAbsoluteAndSetPlaceholder();
+
+		document.addEventListener("mousemove", this.#dragRef);
+		document.addEventListener("mouseup", this.#endDraggingRef);
+	}
+
+	/**
+	 * Updates the position of this element and changes the position of the placeholder if needed.
+	 * @param {Event} event the event which caused the call of this method
+	 */
+	drag(event) {
+		// needed if no event is passed
+		event = event || window.event;
+		event.preventDefault();
+
+		// set position of object dependent to mouse position
+		this._htmlObject.style.left = (event.pageX - this.#relativeMouseOffsetX) + "px";
+		this._htmlObject.style.top = (event.pageY - this.#relativeMouseOffsetY) + "px";
+
+		let category = getOverlappingCategory(this._htmlObject);
+		// end early if the object does not overlap with a category
+		if (!category) {
+			return;
+		}
+		
+		this.movePlaceholder(category);
+	}
+
+	/**
+	 * Sets this element at the position of the placeholder and ends the ability to move.
+	 */
+	endDragging() {
+		document.removeEventListener("mousemove", this.#dragRef);
+		document.removeEventListener("mouseup", this.#endDraggingRef);
+
+		this.resetElementAndSetAtPositionOfPlaceholder();
+
+		LockableManager.unlockElements();
 	}
 
 	/**
@@ -30,27 +101,23 @@ class Element {
 		this._htmlObject.style.top = this._htmlObject.getBoundingClientRect().top + "px";
 
 		// get current dimensions
-		this._htmlObject.style.height = this.getHeight(false, false, false);
-		this._htmlObject.style.width = this.getWidth(false, false, false);
+		// TODO correct height and width for note
+		this._htmlObject.style.height = getHeight(this._htmlObject, false, false, false) + "px";
+		this._htmlObject.style.width = getWidth(this._htmlObject, false, false, false) + "px";
 
 		// replace this._htmlObject with a placeholder
-		this.#placeholder = this.#getNewPlaceholder();
-		this._htmlObject.parentNode.insertBefore(this.#placeholder, this._htmlObject.nextSibling);
+		this._placeholder = new Placeholder(this);
+		this._container.replaceElementWithPlaceholder(this, this._placeholder);
 
 		// make this._htmlObject absolute to move it around without affecting other elements
 		this._htmlObject.style.position = "absolute";
 		this._htmlObject.style.zIndex = "10";
-
-		// move this._htmlObject at the end of its parent
-		let parent = this._htmlObject.parentNode;
-		this._htmlObject.remove();
-		parent.appendChild(this._htmlObject);
 	}
 
 	/*
-	 * Sets this._htmlObject at the position of this.#placeholder and removes this.#placeholder.
+	 * Sets this._htmlObject at the position of this._placeholder and removes this._placeholder.
 	 */
-	setElementAtPositionOfPlaceholder() {
+	resetElementAndSetAtPositionOfPlaceholder() {
 		// reset inline style
 		this._htmlObject.style.left = "";
 		this._htmlObject.style.top = "";
@@ -59,82 +126,39 @@ class Element {
 		this._htmlObject.style.position = "";
 		this._htmlObject.style.zIndex = "";
 
-		if (this.#placeholder) {
-			// replace this.#placeholder with this._htmlObject
-			this._htmlObject.remove();
-			this.#placeholder.parentNode.insertBefore(this._htmlObject, this.#placeholder);
-			this.#placeholder.remove();
-			this.#placeholder = null;
+		if (this._placeholder) {
+			this._container.setElementAtPositionOfPlaceholder(this, this._placeholder);
+			this._placeholder = null;
 		}
 	}
 
 	/**
-	 * Creates a placeholder element with the dimensions of this._htmlObject.
-	 * @returns a placeholder with the dimensions of this._htmlObject
+	 * Moves the placeholder for this element.
+	 * @param {Category} overlappedCategory the category which overlaps with this element
 	 */
-	#getNewPlaceholder() {
-		let placeholder = document.createElement("div");
-		placeholder.classList.add("placeholder");
-		placeholder.style.height = this.getHeight(true, true, true);
-		placeholder.style.width = this.getWidth(true, true, true);
-
-		return placeholder;
+	movePlaceholder(overlappedCategory) {
+		throw new Error("Method must be overridden.");
 	}
 
 	/**
-	 * Returns the height of the managed HTML object, optional with padding, border and/or margin.
-	 * @param {boolean} withPadding specifies if padding top and bottom should be included in calculation
-	 * @param {boolean} withBorder specifies if border thickness top and bottom should be included in calculation
-	 * @param {boolean} withMargin specifies if margin top and bottom should be included in calculation
-	 * @returns the height of the managed HTML object
+	 * Tests if the midpoint of a given HTML object is in the bounding box of the HTML object of this element.
+	 * @param {HTMLElement} object the HTML object which midpoint is tested
+	 * @returns if the given HTML object overlaps with this element
 	 */
-	getHeight(withPadding, withBorder, withMargin) {
-		let styleEle = getComputedStyle(this._htmlObject);
+	doesOverlap(object) {
+		// calculate midpoint of the passed object
+		let midpointObjectX = object.getBoundingClientRect().left + (getWidth(object, false, false, false) / 2);
+		let midpointObjectY = object.getBoundingClientRect().top + (getHeight(object, false, false, false) / 2);
 
-		let height = parseFloat(styleEle.height);
-		if (withPadding) {
-			height += parseFloat(styleEle.paddingTop) + parseFloat(styleEle.paddingBottom);
-		}
-		if (withBorder) {
-			height += parseFloat(styleEle.borderTopWidth) + parseFloat(styleEle.borderBottomWidth);
-		}
-		if (withMargin) {
-			height += parseFloat(styleEle.marginTop) + parseFloat(styleEle.marginBottom);
-		}
+		// calculate positions of the borders of this element
+		let leftBorderThis = this._htmlObject.getBoundingClientRect().left;
+		let rightBorderThis = leftBorderThis + getWidth(this._htmlObject, true, true, false);
+		let topBorderThis = this._htmlObject.getBoundingClientRect().top;
+		let bottomBorderThis = topBorderThis + getHeight(this._htmlObject, true, true, false);
 
-		return height + "px";
-	}
-
-	/**
-	 * Returns the width of the managed HTML object, optional with padding, border and/or margin.
-	 * @param {boolean} withPadding specifies if padding left and right should be included in calculation
-	 * @param {boolean} withBorder specifies if border thickness left and right should be included in calculation
-	 * @param {boolean} withMargin specifies if margin left and right should be included in calculation
-	 * @returns the width of the managed HTML object
-	 */
-	getWidth(withPadding, withBorder, withMargin) {
-		let styleEle = getComputedStyle(this._htmlObject);
-
-		let width = parseFloat(styleEle.width);
-		if (withPadding) {
-			width += parseFloat(styleEle.paddingLeft) + parseFloat(styleEle.paddingRight);
-		}
-		if (withBorder) {
-			width += parseFloat(styleEle.borderLeftWidth) + parseFloat(styleEle.borderRightWidth);
-		}
-		if (withMargin) {
-			width += parseFloat(styleEle.marginLeft) + parseFloat(styleEle.marginRight);
-		}
-
-		return width + "px";
-	}
-
-	/**
-	 * Returns the managed HTML object.
-	 * @returns the managed HTML object
-	 */
-	getHTMLObject() {
-		return this._htmlObject;
+		// return if midpoint lies in between the borders
+		return (midpointObjectX > leftBorderThis && midpointObjectX < rightBorderThis &&
+				midpointObjectY > topBorderThis  && midpointObjectY < bottomBorderThis)
 	}
 
 	/**
@@ -145,5 +169,13 @@ class Element {
 		while (element.firstChild) {
 			element.firstChild.remove();
 		}
+	}
+
+	/**
+	 * Returns the managed HTML object.
+	 * @returns the managed HTML object
+	 */
+	getHTMLObject() {
+		return this._htmlObject;
 	}
 }
