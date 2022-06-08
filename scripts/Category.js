@@ -40,7 +40,11 @@ class Category extends Container {
 		// create area with which the category can be moved around
 		let dragArea = document.createElement("div");
 		dragArea.classList.add("dragArea");
-		dragArea.innerHTML = ".&nbsp;&nbsp;&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;.";
+		for (let i = 0; i < 3; ++i) {
+			let dot = document.createElement("span");
+			dot.classList.add("dot");
+			dragArea.appendChild(dot);
+		}
 		category.appendChild(dragArea);
 
 		// create the categoryHeader which contains the name of the category and a container for buttons edit, save and cancel

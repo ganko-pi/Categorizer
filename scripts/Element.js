@@ -101,7 +101,6 @@ class Element {
 		this._htmlObject.style.top = this._htmlObject.getBoundingClientRect().top + "px";
 
 		// get current dimensions
-		// TODO correct height and width for note
 		this._htmlObject.style.height = getHeight(this._htmlObject, false, false, false) + "px";
 		this._htmlObject.style.width = getWidth(this._htmlObject, false, false, false) + "px";
 

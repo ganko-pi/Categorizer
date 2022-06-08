@@ -37,7 +37,11 @@ class Note extends Element {
 		// create area with which the note can be moved around
 		let dragArea = document.createElement("div");
 		dragArea.classList.add("dragArea");
-		dragArea.innerHTML = ".&nbsp;&nbsp;&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;.";
+		for (let i = 0; i < 3; ++i) {
+			let dot = document.createElement("span");
+			dot.classList.add("dot");
+			dragArea.appendChild(dot);
+		}
 		note.appendChild(dragArea);
 
 		// create a container for buttons edit, done, save and cancel
