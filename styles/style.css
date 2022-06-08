@@ -1,189 +1,305 @@
 /* author: Ganko Pi */
 
-:root {
-	--header_color: rgb(73, 87, 167);
-	--hovered: rgb(53, 70, 168);
-	/* --hovered: rgb(from var(--header_color) r g b / .5); */
-}
-
-* {
-	size: auto;
-	padding: 0;
-	margin: 0;
-	cursor: default;
-}
-
-body {
-	background-color: linen;
-	font-size: 18px;
-}
-
+/* structure */
 header {
 	display: flex;
 	justify-content: space-between;
-
-	padding: 0.5rem 3rem;
-	background-color: var(--header_color);
 }
 
 main {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 4rem 2rem;
-	margin: 2rem 1rem;
 }
 
-.elementsWithDueDate, .elementsWithoutDueDate {
+.dot {
+	display: inline-block;
+}
+
+.categoryHeader {
+	display: flex;
+}
+
+.newNotesContainer,
+.notesWithDueDateContainer,
+.notesWithoutDueDateContainer {
 	display: flex;
 	flex-direction: column;
-	gap: 0.5rem;
-
-	padding: 0.5rem;
-
 	overflow-wrap: break-word;
 }
 
-.elementsWithDueDate > .draggable, .elementsWithoutDueDate > .draggable {
-	padding: 0.5rem;
+.buttonsContainerNote {
+	display: flex;
+	justify-content: space-between;
 }
 
-.container {
-	width: 20rem;
-	min-height: 15rem;
+/* sizing */
+:root {
+	--default-text-size: 1.1rem;
 
-	background-color: bisque;
-	/* border: 0.1rem solid sandybrown; */
-	border: 0.05rem solid var(--header_color)
-
-	/* box-shadow: 0.5rem 0.5rem #00000033; */
+	--dot-size: 0.2rem;
 }
 
-.blocker {
-	position: fixed;
-	top: 0;
-	left: 0;
-	height: 100%;
-	width: 100%;
-	/* background-color: #11111199; */
-	z-index: 1;
+html {
+	font-size: var(--default-text-size);
 }
 
-.container1 {
-	height: 100px;
-	width: 100px;
+body {
+	min-height: 100vh;
+	margin: 0;
+	padding: 0;
+}
 
-	border: 1px solid orange;
+header {
+	padding: 0.5rem 3rem;
+}
+
+header .button {
+	width: fit-content;
+}
+
+main {
+	padding: 2rem 1rem;
+	gap: 4rem 2rem;
+}
+
+img {
+	height: 1rem;
+	margin-top: auto;
+	margin-bottom: auto;
+	padding: 0.3rem 1rem;
 }
 
 .button {
 	padding: 0.5rem 1rem;
+}
+
+.dot {
+	width: var(--dot-size);
+	height: var(--dot-size);
+	margin: 0 0.2rem;
+	border-radius: 100%;
+}
+
+.dragArea {
+	font-size: 0;
+	padding: 0.4rem 0;
+}
+
+.category {
+	width: 20rem;
+	min-height: 15rem;
+	padding-bottom: 0.25rem;
+	border-width: 0.05rem;
+}
+
+.categoryHeader {
+	padding: 0.5rem;
+}
+
+.categoryName {
+	margin: auto;
+	flex-grow: 1;
+}
+
+.addNote {
+	margin: 0.15rem;
+	border-radius: 0.05rem;
+}
+
+.newNotesContainer,
+.notesWithDueDateContainer,
+.notesWithoutDueDateContainer {
+	padding: 0.25rem 0.5rem;
+	gap: 0.5rem;
+}
+
+.newNotesContainer:empty,
+.notesWithDueDateContainer:empty,
+.notesWithoutDueDateContainer:empty {
+	padding: 0 0.5rem;
+}
+
+.note {
+	border-width: 0.25rem;
+	border-radius: 0.15rem;
+}
+
+.note > hr {
+	margin: 0;
+}
+
+.buttonsContainerNote img {
+	width: 1rem;
+	padding: 0.3rem 1rem;
+}
+
+.textArea {
+	margin: 0;
+	padding: 0.25rem;
+}
+
+.dueDate {
+	padding: 0.25rem;
+}
+
+.dueDatePicker {
+	border-width: 1px;
+	border-radius: 0.1rem;
+}
+
+.placeholder {
+	margin: 0;
+	padding: 0;
+}
+
+/* colors light theme */
+:root {
+	--body-background-color: linen;
+	--body-text-color: black;
+
+	--header-background-color: hsl(231, 39%, 47%);
+	--header-button-hovered-background-color: hsl(231, 52%, 43%);
+	--header-text-color: white;
+
+	--default-button-background-color: darkgrey;
+	--default-button-hovered-background-color: hsl(0, 0%, 63%);
+
+	--dot-color-dark: black;
+	--dot-color-light: white;
+
+	--category-background-color: bisque;
+
+	--category-header-drag-area-background-color: hsl(231, 47%, 40%);
+
+	--note-background-color: navajowhite;
+	--note-border-color: hsl(36, 77%, 73%);
+
+	--note-button-hovered-background-color: hsl(34, 72%, 79%);
+
+	--due-date-background-color: white;
+	--due-date-color: black;
+
+	--disabled-due-date-background-color: hsl(0, 0%, 90%);
+	--disabled-due-date-color: hsl(0, 0%, 20%);
+
+	--placeholder-background-color: hsl(0, 0%, 88%);
+}
+
+body {
+	background-color: var(--body-background-color);
+	color: var(--body-text-color);
+}
+
+header {
+	background-color: var(--header-background-color);
+	color: var(--header-text-color);
+}
+
+header .button:hover:not(.disabled) {
+	background-color: var(--header-button-hovered-background-color);
+}
+
+.dot {
+	background-color: var(--dot-color-dark);
+}
+
+.category {
+	background-color: var(--category-background-color);
+	border-color: var(--header-background-color);
+}
+
+.category > .dragArea {
+	background-color: var(--category-header-drag-area-background-color);
+}
+
+.category > .dragArea > .dot {
+	background-color: var(--dot-color-light);
+}
+
+.categoryHeader {
+	background-color: var(--header-background-color);
+	color: var(--header-text-color);
+}
+
+.buttonsContainerCategoryHeader img:hover:not(.disabled) {
+	background-color: var(--header-button-hovered-background-color);
+}
+
+.addNote {
+	background-color: var(--default-button-background-color);
+}
+
+.addNote:hover:not(.disabled) {
+	background-color: var(--default-button-hovered-background-color);
+}
+
+.note {
+	background-color: var(--note-background-color);
+	border-color: var(--note-border-color);
+}
+
+.note > .dragArea {
+	background-color: var(--note-border-color);
+}
+
+.note > hr {
+	border-color: var(--note-border-color);
+}
+
+.buttonsContainerNote img:hover:not(.disabled) {
+	background-color: var(--note-button-hovered-background-color);
+}
+
+.dueDatePicker {
+	background-color: var(--due-date-background-color);
+	color: var(--due-date-color);
+	border-color: var(--due-date-color);
+}
+
+.dueDatePicker:disabled {
+	background-color: var(--disabled-due-date-background-color);
+	color: var(--disabled-due-date-color);
+	border-color: var(--disabled-due-date-color);
+}
+
+.placeholder {
+	background-color: var(--placeholder-background-color);
+}
+
+/* other */
+html {
+	cursor: default;
+}
+
+.button {
 	text-align: center;
-	z-index: 100;
 }
 
 .button:not(.disabled) {
 	cursor: pointer;
 }
 
-header .button {
-	color: white;
-	width: fit-content;
-	background-color: inherit;
-}
-
-header .button:hover:not(.disabled) {
-	background-color: var(--hovered)
-}
-
-.addElement {
-	margin: 0.15rem;
-	background-color: darkgrey;
-	border-radius: 0.05rem;
-}
-
-.addElement:hover:not(.disabled) {
-	background-color: #A0A0A0;
-}
-
-.containerHeader {
-	padding: 10px;
-	background-color: var(--header_color);
-	color: #fff;
-
-	display: flex;
-}
-
-.containerHeaderText {
-	flex-grow: 1;
-}
-
-/* .draggable .dragArea {
+.draggable .dragArea:not(.disabled) {
 	cursor: move;
-} */
-
-
-.draggable {
-	/* z-index: 9; */
-	/* text-align: center; */
-
-	/* width: max-content; */
 }
 
-.placeholder {
-	background-color: #e0e0e0;
+.dragArea {
+	text-align: center;
 }
 
-#div1 {
-	background-color: orange;
+.category {
+	border-style: solid;
 }
 
-#innerDiv1 {
-	background-color: red;
-}
-
-#div2 {
-	background-color: aqua;
-}
-
-#innerDiv2 {
-	background-color: blue;
-}
-
-/* p {
-	background-color: red;
-	min-height: 1rem;
-} */
-
-.element {
-	background-color: navajowhite;
-	border: 0.25rem solid burlywood;
-	border-radius: 0.15rem;
+.note {
+	border-style: solid;
 	text-align: left;
 }
 
-.element .button {
-	/* background-color: tan; */
+.note > hr {
+	border-style: solid;
 }
 
-.buttonsContainerElements {
-	display: flex;
-	justify-content: space-between;
-}
-
-.buttonsContainerElements img {
-	padding: 0.3rem 1rem;
-	width: 1rem;
-}
-
-.buttonsContainerElements img:hover {
-	background-color: #F0CEA3;
-}
-
-.textArea {
-	padding: 0.1rem 0.1rem;
-}
-
-img {
-	padding: 0.3rem 1rem;
-	height: 1rem;
+.dueDatePicker {
+	border-style: solid;
 }
