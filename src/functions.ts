@@ -1,23 +1,26 @@
+import { Category } from "./Category.js";
+import { CategoryManager } from "./CategoryManager.js";
+
 /**
  * @author Ganko Pi
  */
 window.onload = init;
 
-let categoryManager;
+let categoryManager: CategoryManager;
 
 /**
  * Maps actions to the buttons for adding a category and showing the finished notes.
  * // TODO: Update description
  */
-function init() {
+function init(): void {
 	// add new category
 	categoryManager = new CategoryManager(new Date());
-	let addContainerButton = document.querySelector(".addCategoryButton");
+	let addContainerButton: HTMLElement = document.querySelector(".addCategoryButton");
 	LockableManager.makeLockable(addContainerButton, "click", categoryManager.createNewCategory.bind(categoryManager));
 
 	// link to finished notes
-	let doneButton = document.querySelector(".doneButton");
-	// TODO
+	let doneButton: HTMLElement = document.querySelector(".doneButton");
+	// TODO doneButton
 	LockableManager.makeLockable(doneButton, "click", () => console.log("Done"));
 }
 
@@ -26,22 +29,22 @@ function init() {
  * @param {HTMLElement} object the HTML object to test the overlapping with a category
  * @returns a category which overlaps with the HTML object or undefined if no category overlaps
  */
-function getOverlappingCategory(object) {
+export function getOverlappingCategory(object: HTMLElement): Category  {
 	return categoryManager.getOverlappingCategory(object);
 }
 
 /**
- * Returns the height of a passed HTML object, optional with padding, border and/or margin.#
+ * Returns the height of a passed HTML object, optional with padding, border and/or margin.
  * @param {HTMLElement} element the element to retrieve the height from
  * @param {boolean} withPadding specifies if padding top and bottom should be included in calculation
  * @param {boolean} withBorder specifies if border thickness top and bottom should be included in calculation
  * @param {boolean} withMargin specifies if margin top and bottom should be included in calculation
  * @returns the height of the passed HTML object
  */
-function getHeight(element, withPadding, withBorder, withMargin) {
-	let styleEle = getComputedStyle(element);
+export function getHeight(element: HTMLElement, withPadding: boolean, withBorder: boolean, withMargin: boolean): number {
+	let styleEle: CSSStyleDeclaration = getComputedStyle(element);
 
-	let height = parseFloat(styleEle.height);
+	let height: number = parseFloat(styleEle.height);
 	if (withPadding) {
 		height += parseFloat(styleEle.paddingTop) + parseFloat(styleEle.paddingBottom);
 	}
@@ -63,10 +66,10 @@ function getHeight(element, withPadding, withBorder, withMargin) {
  * @param {boolean} withMargin specifies if margin left and right should be included in calculation
  * @returns the width of the passed HTML object
  */
-function getWidth(element, withPadding, withBorder, withMargin) {
-	let styleEle = getComputedStyle(element);
+export function getWidth(element: HTMLElement, withPadding: boolean, withBorder: boolean, withMargin: boolean): number {
+	let styleEle: CSSStyleDeclaration = getComputedStyle(element);
 
-	let width = parseFloat(styleEle.width);
+	let width: number = parseFloat(styleEle.width);
 	if (withPadding) {
 		width += parseFloat(styleEle.paddingLeft) + parseFloat(styleEle.paddingRight);
 	}
@@ -81,6 +84,6 @@ function getWidth(element, withPadding, withBorder, withMargin) {
 }
 
 // TODO: description
-function save() {
+function save(): void {
 	// TODO: Send type, index and contents of changed object to server as JSON
 }

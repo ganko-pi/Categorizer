@@ -1,6 +1,6 @@
 window.onload = () => populateHTML(json);
 
-let json = `[
+let json: string = `[
 	{
 		"name": "container1",
 		"elements": [
@@ -33,10 +33,10 @@ let json = `[
 	}
 ]`;
 
-function populateHTML(json) {
+function populateHTML(json: string): void {
 	let json2 = JSON.parse(json);
 	
-	for (let i = 0; i < json2.length; ++i) {
+	for (let i: number = 0; i < json2.length; ++i) {
 		console.log(json2[i]);
 		console.log(json2[i]["name"]);
 	}

@@ -1,0 +1,34 @@
+Element
+	/**
+	 * Converts this class into JSON
+	 * @returns the JSON of this class
+	 */
+	toJSON() {
+		return {
+			creationDate: this.#creationDate
+		}
+	}
+
+functions
+// TODO: description
+function save() {
+	// TODO: Send type, index and contents of changed object to server as JSON
+	const xhttp = new XMLHttpRequest();
+	xhttp.open("POST", "");
+	xhttp.send("action=save\n" + JSON.stringify(categoryManager));
+}
+
+Note
+	/**
+	 * Converts this class into JSON
+	 * @returns the JSON of this class
+	 */
+	toJSON(){
+		return {
+			content: this.#content,
+			dueDate: this.#dueDate,
+			doneDate: this.#doneDate
+		}
+	}
+
+TODO Remove all .bind

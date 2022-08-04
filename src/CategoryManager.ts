@@ -1,22 +1,26 @@
+import { Category } from "./Category.js";
+import { Container } from "./Container.js";
+import { Placeholder } from "./Placeholder.js";
+
 /**
  * @author Ganko Pi
  */
-class CategoryManager extends Container {
+export class CategoryManager extends Container {
 
 	/**
 	 * Constructor for a new CategoryManager.
 	 * @param {Date} creationDate the date on which the CategoryManager was first created
 	 */
-	constructor(creationDate) {
+	constructor(creationDate: Date) {
 		super(creationDate);
-		this._htmlObject = document.querySelector("main");
+		this.htmlObject = document.querySelector("main");
 	}
 
 	/**
 	 * Creates a new category and adds it to the HTML page.
 	 */
-	createNewCategory() {
-		let category = new Category(new Date(), this);
+	createNewCategory(): void {
+		let category: Category = new Category(new Date(), this);
 
 		this.addChild(category);
 
@@ -29,11 +33,21 @@ class CategoryManager extends Container {
 	 * @param {HTMLElement} object the HTML object to test the overlapping with a category
 	 * @returns a category which overlaps with the HTML object or undefined if no category overlaps
 	 */
-	getOverlappingCategory(object) {
-		return this._elements.find((category) => {
+	getOverlappingCategory(object: HTMLElement): Category {
+		return this.elements.find((category: Category) => {
 			return (object != category.getHTMLObject())
 				&& !(category instanceof Placeholder)
 				&& category.doesOverlap(object);
-		});
+		}) as Category;
+	}
+
+	/**
+	 * NOT IMPLEMENTED FOR THIS CLASS!
+	 * 
+	 * Moves the placeholder for this element.
+	 * @param {Category} overlappedCategory the category which overlaps with this element
+	 */
+	movePlaceholder(overlappedCategory: Category): void {
+		throw new Error("Not implemented");
 	}
 }

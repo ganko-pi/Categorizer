@@ -2,7 +2,7 @@
  * @author Ganko Pi
  */
 class LockableManager {
-	static #htmlObjectsLockable = [];
+	private static htmlObjectsLockable = [];
 
 	/**
 	 * Adds an event listener which can be disabled.
@@ -10,8 +10,8 @@ class LockableManager {
 	 * @param {string} type type of event listener 
 	 * @param {Function} functionToRun function which will be executed if the element is enabled
 	 */
-	static makeLockable(htmlObject, type, functionToRun) {
-		this.#htmlObjectsLockable.push(htmlObject);
+	static makeLockable(htmlObject: HTMLElement, type: string, functionToRun: Function): void {
+		this.htmlObjectsLockable.push(htmlObject);
 
 		htmlObject.addEventListener(type, () => {
 			if (htmlObject.classList.contains("disabled")) {
@@ -25,14 +25,14 @@ class LockableManager {
 	/**
 	 * Disables all lockable elements.
 	 */
-	static lockElements() {
-		this.#htmlObjectsLockable.forEach((element) => element.classList.add("disabled"));
+	static lockElements(): void {
+		this.htmlObjectsLockable.forEach((element) => element.classList.add("disabled"));
 	}
 	
 	/**
 	 * Enables all lockable elements.
 	 */
-	static unlockElements() {
-		this.#htmlObjectsLockable.forEach((element) => element.classList.remove("disabled"));
+	static unlockElements(): void {
+		this.htmlObjectsLockable.forEach((element) => element.classList.remove("disabled"));
 	}
 }
