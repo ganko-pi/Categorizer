@@ -135,13 +135,15 @@ export default {
 <template>
 	<DraggableElement class="category" :elementsLocked="elementsLocked">
 		<div class="categoryHeader">
-			<!-- <textarea class="categoryName" :value="name" @input="resizeHeightToFitContent"></textarea> -->
-			<textarea
-				class="categoryName"
-				ref="categoryName"
-				v-model.trim="newName"
-				disabled>
-			</textarea>
+				<div class="textareaWrapper">
+				<!-- <textarea class="categoryName" :value="name" @input="resizeHeightToFitContent"></textarea> -->
+				<textarea
+					class="categoryName"
+					ref="categoryName"
+					v-model.trim="newName"
+					disabled>
+				</textarea>
+			</div>
 			<div class="buttonsContainerCategoryHeader">
 				<img
 					v-show="editActive"
@@ -217,10 +219,14 @@ export default {
 	padding: 0.5rem;
 }
 
-.categoryName {
+.textareaWrapper {
 	margin: auto;
-	height: var(--default-text-size);
 	flex-grow: 1;
+}
+
+.categoryName {
+	height: var(--default-text-size);
+	width: 95%;
 }
 
 .buttonsContainerCategoryHeader {

@@ -150,13 +150,15 @@ export default {
 				@click="() => alert('Done')">
 		</div>
 		<hr>
-		<!-- <textarea class="categoryName" :value="name" @input="resizeHeightToFitContent"></textarea> -->
-		<textarea
-			class="contentNote"
-			ref="contentNote"
-			v-model.trim="newContent"
-			disabled>
-		</textarea>
+		<div class="textareaWrapper">
+			<!-- <textarea class="categoryName" :value="name" @input="resizeHeightToFitContent"></textarea> -->
+			<textarea
+				class="contentNote"
+				ref="contentNote"
+				v-model.trim="newContent"
+				disabled>
+			</textarea>
+		</div>
 		<div v-show="editActive || dueDateSet" class="dueDate">
 			F&auml;llig am:
 			<input
@@ -191,10 +193,12 @@ export default {
 	padding: 0.3rem 1rem;
 }
 
-.contentNote {
+.textareaWrapper {
 	margin: 0;
 	padding: 0.25rem;
+}
 
+.contentNote {
 	height: var(--default-text-size);
 	width: 100%;
 }

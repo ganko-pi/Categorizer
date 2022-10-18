@@ -23,7 +23,6 @@ img {
 }
 
 textarea {
-	/* box-sizing: border-box; */ /* TODO needed for width but then height is wrong */
 	margin: 0;
 	padding: 0;
 	min-width: 0;
