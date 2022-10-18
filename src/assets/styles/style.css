@@ -1,0 +1,88 @@
+/* author: Ganko Pi */
+
+/* sizing */
+:root {
+	--default-text-size: 1.1rem;
+}
+
+html {
+	font-size: var(--default-text-size);
+}
+
+body {
+	min-height: 100vh;
+	margin: 0;
+	padding: 0;
+}
+
+img {
+	height: 1rem;
+	margin-top: auto;
+	margin-bottom: auto;
+	padding: 0.3rem 1rem;
+}
+
+textarea {
+	/* box-sizing: border-box; */ /* TODO needed for width but then height is wrong */
+	margin: 0;
+	padding: 0;
+	min-width: 0;
+	max-width: 100%;
+	min-height: 0;
+	resize: none;
+}
+
+.button {
+	padding: 0.5rem 1rem;
+}
+
+.placeholder {
+	margin: 0;
+	padding: 0;
+}
+
+/* colors light theme */
+:root {
+	--body-background-color: linen;
+	--body-text-color: black;
+
+	--header-background-color: hsl(231, 39%, 47%);
+	--header-button-hovered-background-color: hsl(231, 52%, 43%);
+	--header-text-color: white;
+
+	--default-button-background-color: darkgrey;
+	--default-button-hovered-background-color: hsl(0, 0%, 63%);
+
+	--placeholder-background-color: hsl(0, 0%, 88%);
+}
+
+body {
+	background-color: var(--body-background-color);
+	color: var(--body-text-color);
+}
+
+.placeholder {
+	background-color: var(--placeholder-background-color);
+}
+
+/* other */
+html {
+	cursor: default;
+}
+
+textarea {
+	border: none;
+	font: inherit;
+}
+
+.button {
+	text-align: center;
+}
+
+.button.disabled {
+	pointer-events: none;
+}
+
+.button:not(.disabled) {
+	cursor: pointer;
+}
